@@ -237,7 +237,7 @@ var _ = Describe("Garden startup flags", func() {
 				})
 			})
 
-			Context("when the graph cleanup threshold is set to 0", func() {
+			Context("when the graph cleanup threshold is exceeded", func() {
 				BeforeEach(func() {
 					args = []string{"--graphCleanupThreshold=0"}
 				})
@@ -261,9 +261,20 @@ var _ = Describe("Garden startup flags", func() {
 				})
 			})
 
-			Context("when the graph cleanup threshold is set to some positive number", func() {
+			Context("when the graph cleanup threshold is not exceeded", func() {
 				BeforeEach(func() {
-					args = []string{"--graphCleanupThreshold=256"}
+					args = []string{"--graphCleanupThreshold=1024"}
+				})
+
+				It("does not cleanup", func() {
+					// threshold is not yet exceeded
+					Expect(numLayersInGraph()).To(Equal(3))
+
+					anotherContainer, err := client.Create(garden.ContainerSpec{})
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(numLayersInGraph()).To(Equal(6))
+					Expect(client.Destroy(anotherContainer.Handle())).To(Succeed())
 				})
 
 			})
