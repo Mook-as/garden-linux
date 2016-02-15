@@ -94,6 +94,7 @@ func start(network, addr string, argv ...string) *RunningGarden {
 		Client: client.New(connection.New(network, addr)),
 	}
 
+	fmt.Printf("starting garden: %s", argv)
 	c := cmd(stateDirPath, depotPath, snapshotsPath, graphPath, network, addr, GardenBin, BinPath, RootFSPath, argv...)
 	r.runner = ginkgomon.New(ginkgomon.Config{
 		Name:              "garden-linux",
@@ -191,8 +192,8 @@ func cmd(stateDirPath, depotPath, snapshotsPath, graphPath, network, addr, bin, 
 	gardenArgs = appendDefaultFlag(gardenArgs, "--portPoolSize", "1000")
 	gardenArgs = appendDefaultFlag(gardenArgs, "--tag", strconv.Itoa(ginkgo.GinkgoParallelNode()))
 
-	if !hasFlag(gardenArgs, "-enableGraphCleanup=false") {
-		gardenArgs = appendDefaultFlag(gardenArgs, "--enableGraphCleanup", "")
+	if !hasFlag(gardenArgs, "--graphCleanupThreshold=-1") {
+		gardenArgs = appendDefaultFlag(gardenArgs, "--graphCleanupThreshold", "0")
 	}
 
 	gardenArgs = appendDefaultFlag(gardenArgs, "--debugAddr", fmt.Sprintf(":808%d", ginkgo.GinkgoParallelNode()))

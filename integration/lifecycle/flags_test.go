@@ -212,7 +212,7 @@ var _ = Describe("Garden startup flags", func() {
 			Expect(os.RemoveAll(nonDefaultRootfsPath)).To(Succeed())
 		})
 
-		Describe("--enableGraphCleanup", func() {
+		FDescribe("--graphCleanupThreshold", func() {
 
 			JustBeforeEach(func() {
 				container, err := client.Create(garden.ContainerSpec{
@@ -222,9 +222,9 @@ var _ = Describe("Garden startup flags", func() {
 				Expect(client.Destroy(container.Handle())).To(Succeed())
 			})
 
-			Context("when starting without the flag", func() {
+			Context("when the graph cleanup threshold is set to -1", func() {
 				BeforeEach(func() {
-					args = []string{"-enableGraphCleanup=false"}
+					args = []string{"--graphCleanupThreshold=-1"}
 				})
 
 				It("does NOT clean up the graph directory on create", func() {
@@ -237,18 +237,18 @@ var _ = Describe("Garden startup flags", func() {
 				})
 			})
 
-			Context("when starting with the flag", func() {
+			Context("when the graph cleanup threshold is set to 0", func() {
 				BeforeEach(func() {
-					args = []string{"-enableGraphCleanup=true"}
+					args = []string{"--graphCleanupThreshold=0"}
 				})
 
 				Context("when there are other rootfs layers in the graph dir", func() {
 					BeforeEach(func() {
-						args = append(args, "-persistentImage", "docker:///busybox")
+						args = append(args, "--persistentImage", "docker:///busybox")
 					})
 
 					It("cleans up the graph directory on container creation (and not on destruction)", func() {
-						restartGarden("-enableGraphCleanup=true") // restart with persistent image list empty
+						restartGarden("--graphCleanupThreshold=0") // restart with persistent image list empty
 						Expect(numLayersInGraph()).To(BeNumerically(">", 0))
 
 						anotherContainer, err := client.Create(garden.ContainerSpec{})
@@ -259,6 +259,13 @@ var _ = Describe("Garden startup flags", func() {
 						Expect(numLayersInGraph()).To(Equal(2), "should not garbage collect parent layers on destroy")
 					})
 				})
+			})
+
+			Context("when the graph cleanup threshold is set to some positive number", func() {
+				BeforeEach(func() {
+					args = []string{"--graphCleanupThreshold=256"}
+				})
+
 			})
 		})
 

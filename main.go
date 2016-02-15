@@ -109,10 +109,10 @@ var rootFSPath = flag.String(
 	"directory of the rootfs for the containers",
 )
 
-var enableGraphCleanup = flag.Bool(
-	"enableGraphCleanup",
-	false,
-	"enables graph garbage collection",
+var graphCleanupThreshold = flag.Int(
+	"graphCleanupThreshold",
+	-1,
+	"sets the threshold for triggering graph cleanup",
 )
 
 var containerGraceTime = flag.Duration(
@@ -400,9 +400,10 @@ func main() {
 		),
 	}
 
+	println("graphcleanup star: ", *graphCleanupThreshold, "graphcleanup: ", graphCleanupThreshold)
 	cleaner := layercake.NewOvenCleaner(
 		retainer,
-		*enableGraphCleanup,
+		*graphCleanupThreshold,
 	)
 
 	layerCreator := rootfs_provider.NewLayerCreator(cake, rootfs_provider.SimpleVolumeCreator{}, rootFSNamespacer)
